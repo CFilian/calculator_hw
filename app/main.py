@@ -4,7 +4,9 @@
 # IMPORTING NECESSARY MODULES
 # ==============================================================================
 
-import logging  # Standard Python module for logging events and messages.
+from app.logs import setup_logs  
+import logging# Standard Python module for logging events and messages.
+
 # Documentation: https://docs.python.org/3/library/logging.html
 
 import pdb  # Python debugger for interactive debugging sessions.
@@ -18,23 +20,8 @@ from dataclasses import dataclass  # Provides a decorator and functions for auto
 
 from typing import List  # Provides support for type hints.
 # Documentation: https://docs.python.org/3/library/typing.html
-
-# ==============================================================================
-# SETUP LOGGING CONFIGURATION
-# ==============================================================================
-
-# Configure the logging settings for the application.
-# Logging is crucial for tracking events and diagnosing issues in applications.
-logging.basicConfig(
-    filename='calculator.log',  # Specifies the file to write log messages to.
-    level=logging.DEBUG,  # Sets the logging level to DEBUG; captures all levels (DEBUG, INFO, WARNING, ERROR, CRITICAL).
-    format='%(asctime)s - %(levelname)s - %(message)s'  # Defines the format of the log messages.
-    # Format placeholders:
-    # %(asctime)s - Timestamp of the log entry.
-    # %(levelname)s - Severity level of the log message.
-    # %(message)s - The actual log message.
-)
-
+from app.observer import HistoryObserver, CalculatorWithObserver
+setup_logs()
 # ==============================================================================
 # OPERATION CLASSES (COMMAND AND TEMPLATE METHOD PATTERNS)
 # ==============================================================================
@@ -189,75 +176,6 @@ class OperationFactory:
 # ==============================================================================
 # OBSERVER PATTERN FOR TRACKING HISTORY
 # ==============================================================================
-
-# Who: The HistoryObserver and CalculatorWithObserver classes.
-# What: Allows observers to be notified of changes in the calculation history.
-# Why: To promote loose coupling between the calculator and observers, adhering to the Observer Pattern.
-# Where: In the calculator's history management.
-# When: Whenever a new calculation is performed.
-# How: Observers register themselves with the calculator and are notified upon updates.
-
-class HistoryObserver:
-    """
-    Observer that gets notified whenever a new calculation is added to history.
-    Implements the Observer Pattern.
-    """
-    def update(self, calculation):
-        """
-        Called when a new calculation is added to the history.
-        Parameters:
-        - calculation (Calculation): The calculation object that was added.
-        """
-        # Log the notification at INFO level.
-        logging.info(f"Observer: New calculation added -> {calculation}")
-
-class CalculatorWithObserver:
-    """
-    Calculator class with observer support for tracking calculation history.
-    Maintains a list of observers and notifies them of changes.
-    """
-    def __init__(self):
-        self._history: List[Calculation] = []  # List to store calculation history.
-        self._observers: List[HistoryObserver] = []  # List of observers.
-
-    def add_observer(self, observer: HistoryObserver):
-        """
-        Adds an observer to be notified when history is updated.
-        Parameters:
-        - observer (HistoryObserver): The observer to add.
-        """
-        self._observers.append(observer)  # Add the observer to the list.
-        logging.debug(f"Observer added: {observer}")  # Log the addition.
-
-    def notify_observers(self, calculation):
-        """
-        Notifies all observers when a new calculation is added.
-        Parameters:
-        - calculation (Calculation): The calculation object that was added.
-        """
-        for observer in self._observers:
-            observer.update(calculation)  # Call the update method on the observer.
-            logging.debug(f"Notified observer about: {calculation}")  # Log the notification.
-
-    def perform_operation(self, operation: TemplateOperation, a: float, b: float):
-        """
-        Performs the operation, stores it in history, and notifies observers.
-        Parameters:
-        - operation (TemplateOperation): The operation to perform.
-        - a (float): The first operand.
-        - b (float): The second operand.
-        Returns:
-        - The result of the operation.
-        """
-        calculation = Calculation(operation, a, b)  # Create a new Calculation object.
-        self._history.append(calculation)  # Add the calculation to the history.
-        self.notify_observers(calculation)  # Notify observers of the new calculation.
-        logging.debug(f"Performed operation: {calculation}")  # Log the operation.
-        return operation.calculate(a, b)  # Execute the calculation and return the result.
-
-# Why use the Observer Pattern?
-# - Decouples the calculator from the observers, allowing for dynamic addition/removal of observers.
-# - Promotes a one-to-many dependency between objects, so when one object changes state, all dependents are notified.
 
 # ==============================================================================
 # SINGLETON PATTERN FOR ENSURING ONE CALCULATOR INSTANCE
